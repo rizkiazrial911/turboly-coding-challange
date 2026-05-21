@@ -107,13 +107,3 @@ This project is tailored to strictly adhere to enterprise-level software require
 * Secure: Enforced strict Form Validations, SQL-injection proof Eloquent parameters, protected API endpoints, and scoped Mass Assignment array constraints ($fillable).
 
 * Maintainable: Managed cleanly under strict code modularization principless, separating UI layouts from state orchestration layers. Fully compatible with TypeScript type-emission standard verification checks (npx -p typescript tsc --noEmit).
----
-### 🖼️ Preview application:
-1. Preview Login (Desktop)
-![Desktop Login](resources/screenshots/login-desktop.png)
-
-### 📱 Preview Login (Smartphone)
-![Mobile Login](resources/screenshots/login-mobile.png)
-
-### 🖼️ Main Dashboard & Task Management
-![Main Dashboard](resources/screenshots/dashboard-main.png)
