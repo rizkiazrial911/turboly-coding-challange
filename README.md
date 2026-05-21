@@ -44,10 +44,6 @@ Below are the interface captures representing the multi-device support and core 
 *Central hub containing shortcuts, operational tags (e.g., "New Joiner" badge), and task progress analytics.*
 ![Main Dashboard Page](resources/screenshots/dashboard-main.png)
 
-#### 📋 Task Management Center
-*The interactive control center where tasks are filtered by due status, priority levels, and assignment tracking.*
-![Task Management Page](resources/screenshots/task-management.png)
-
 ---
 
 ## ⚙️ Installation & Local Setup Guide
