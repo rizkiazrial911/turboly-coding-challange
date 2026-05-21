@@ -27,6 +27,22 @@ interface DashboardProps {
     priority: string;
     setPriority: (v: string) => void;
     setSort?: (v: string) => void;
+    searchQuery: string;
+    setSearchQuery: (v: string) => void;
+    filterPriority: string;
+    setFilterPriority: (v: string) => void;
+    filterStatus: string;
+    setFilterStatus: (v: string) => void;
+}
+
+interface TaskProps {
+    id: number;
+    title: string;
+    description?: string; // Tanda tanya (?) berarti properti ini boleh kosong (nullable)
+    priority: 'high' | 'medium' | 'low'; // Mengunci nilai hanya boleh salah satu dari string ini
+    is_completed: boolean; // Menyesuaikan snake_case standar database Laravel
+    due_date?: string; // Format tanggal dari backend biasanya berupa string ISO / YYYY-MM-DD
+    alertDue?: boolean; // Properti opsional untuk penanda visual kedaluwarsa
 }
 
 // ========================================================
@@ -97,14 +113,14 @@ const DesktopLogin: React.FC<LoginProps> = ({ onLogin, email, setEmail, password
 // 2. ADAPTIVE DASHBOARD VIEWS
 // ========================================================
 
-const SmartphoneDashboard: React.FC<DashboardProps> = ({ tasks, onToggle, alertDue, onLogout, onAdd, desc, setDesc, date, setDate, priority, setPriority }) => (
+const SmartphoneDashboard: React.FC<DashboardProps> = ({ tasks, onToggle, alertDue, setSort, onLogout, onAdd, desc, setDesc, date, setDate, priority, setPriority, searchQuery, setSearchQuery, filterPriority, setFilterPriority, filterStatus, setFilterStatus }) => (
     <div className="container-fluid py-3 bg-light min-vh-100">
         <div className="d-flex justify-content-between align-items-center mb-3">
             <h6 className="fw-bold text-primary mb-0">Mobile Task Manager</h6>
             <button className="btn btn-sm btn-outline-danger px-2" onClick={onLogout}>Logout</button>
         </div>
 
-        {alertDue && <div className="alert alert-danger text-center fw-bold small p-2 mb-3">⚠️ Tugas HARI INI belum selesai!</div>}
+        {alertDue && <div className="alert alert-danger text-center fw-bold small p-2 mb-3">⚠️ You have critical tasks due today. Please action them immediately.</div>}
 
         <div className="card p-3 mb-3 border-0 shadow-sm">
             <input type="text" className="form-control form-control-sm mb-2" placeholder="Tugas baru..." value={desc} onChange={e => setDesc(e.target.value)} />
@@ -119,6 +135,35 @@ const SmartphoneDashboard: React.FC<DashboardProps> = ({ tasks, onToggle, alertD
                 </div>
             </div>
             <button className="btn btn-sm btn-primary w-100 mt-2" onClick={onAdd}>+ Simpan</button>
+        </div>
+
+        <div className="d-flex justify-content-between align-items-center mb-3">
+            <div className="d-flex gap-2 w-75">
+                <input 
+                    type="text" 
+                    className="form-control form-control-sm w-50" 
+                    placeholder="🔍 Search operational tasks..." 
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                />
+                <select className="form-select form-select-sm w-25" value={filterPriority} onChange={e => setFilterPriority(e.target.value)}>
+                    <option value="all">All Priorities</option>
+                    <option value="high">🔴 High</option>
+                    <option value="medium">🟡 Medium</option>
+                    <option value="low">🟢 Low</option>
+                </select>
+                <select className="form-select form-select-sm w-25" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
+                    <option value="all">All Status</option>
+                    <option value="pending">⏳ Pending</option>
+                    <option value="completed">✅ Done</option>
+                </select>
+            </div>
+        </div>
+
+        <div className="d-flex justify-content-end gap-2 mb-3">
+            <button className="btn btn-sm btn-outline-secondary px-3" onClick={() => setSort && setSort('due_date')}>Sort by Due Date</button>
+            <button className="btn btn-sm btn-outline-secondary px-3" onClick={() => setSort && setSort('description')}>Sort by Name</button>
+            <button className="btn btn-sm btn-outline-secondary px-3" onClick={() => setSort && setSort('priority')}>Sort by Priority</button>
         </div>
 
         <div className="d-flex flex-column gap-2">
@@ -136,17 +181,20 @@ const SmartphoneDashboard: React.FC<DashboardProps> = ({ tasks, onToggle, alertD
                     </div>
                 </div>
             ))}
+            {tasks.length === 0 && (
+                <div className="text-center p-4 text-muted border rounded bg-white">👋 Welcome aboard! You have no operational tasks allocated for today. Get started by creating your first task above.</div>
+            )}
         </div>
     </div>
 );
 
-const TabletDashboard: React.FC<DashboardProps> = ({ tasks, onToggle, alertDue, onLogout, onAdd, desc, setDesc, date, setDate, priority, setPriority }) => (
+const TabletDashboard: React.FC<DashboardProps> = ({ tasks, onToggle, alertDue, setSort, onLogout, onAdd, desc, setDesc, date, setDate, priority, setPriority, searchQuery, setSearchQuery, filterPriority, setFilterPriority, filterStatus, setFilterStatus }) => (
     <div className="container py-4">
         <div className="d-flex justify-content-between align-items-center mb-4">
             <h3 className="text-secondary mb-0">Tablet Task Hub</h3>
             <button className="btn btn-outline-dark" onClick={onLogout}>Disconnect</button>
         </div>
-        {alertDue && <div className="alert alert-warning text-center fw-bold mb-4">🔔 Perhatian: Ada tugas jatuh tempo hari ini!</div>}
+        {alertDue && <div className="alert alert-warning text-center fw-bold mb-4">🔔 You have critical tasks due today. Please action them immediately.</div>}
 
         <div className="card p-4 mb-4 shadow-sm bg-white border-0">
             <div className="row g-2">
@@ -161,6 +209,35 @@ const TabletDashboard: React.FC<DashboardProps> = ({ tasks, onToggle, alertDue, 
                 </div>
             </div>
             <button className="btn btn-info w-100 mt-3 text-white fw-semibold" onClick={onAdd}>Create New Task</button>
+        </div>
+
+        <div className="d-flex justify-content-between align-items-center mb-3">
+            <div className="d-flex gap-2 w-75">
+                <input 
+                    type="text" 
+                    className="form-control form-control-sm w-50" 
+                    placeholder="🔍 Search operational tasks..." 
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                />
+                <select className="form-select form-select-sm w-25" value={filterPriority} onChange={e => setFilterPriority(e.target.value)}>
+                    <option value="all">All Priorities</option>
+                    <option value="high">🔴 High</option>
+                    <option value="medium">🟡 Medium</option>
+                    <option value="low">🟢 Low</option>
+                </select>
+                <select className="form-select form-select-sm w-25" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
+                    <option value="all">All Status</option>
+                    <option value="pending">⏳ Pending</option>
+                    <option value="completed">✅ Done</option>
+                </select>
+            </div>
+        </div>
+
+        <div className="d-flex justify-content-end gap-2 mb-3">
+            <button className="btn btn-sm btn-outline-secondary px-3" onClick={() => setSort && setSort('due_date')}>Sort by Due Date</button>
+            <button className="btn btn-sm btn-outline-secondary px-3" onClick={() => setSort && setSort('description')}>Sort by Name</button>
+            <button className="btn btn-sm btn-outline-secondary px-3" onClick={() => setSort && setSort('priority')}>Sort by Priority</button>
         </div>
 
         <div className="row g-3">
@@ -180,11 +257,14 @@ const TabletDashboard: React.FC<DashboardProps> = ({ tasks, onToggle, alertDue, 
                     </div>
                 </div>
             ))}
+            {tasks.length === 0 && (
+                <div className="text-center p-4 text-muted border rounded bg-white">👋 Welcome aboard! You have no operational tasks allocated for today. Get started by creating your first task above.</div>
+            )}
         </div>
     </div>
 );
 
-const DesktopDashboard: React.FC<DashboardProps> = ({ tasks, onToggle, alertDue, setSort, onLogout, onAdd, desc, setDesc, date, setDate, priority, setPriority }) => (
+const DesktopDashboard: React.FC<DashboardProps> = ({ tasks, onToggle, alertDue, setSort, onLogout, onAdd, desc, setDesc, date, setDate, priority, setPriority, searchQuery, setSearchQuery, filterPriority, setFilterPriority, filterStatus, setFilterStatus }) => (
     <div className="container py-5">
         <div className="d-flex justify-content-between align-items-center mb-5">
             <div>
@@ -225,6 +305,29 @@ const DesktopDashboard: React.FC<DashboardProps> = ({ tasks, onToggle, alertDue,
             </div>
         </div>
 
+        <div className="d-flex justify-content-between align-items-center mb-3">
+            <div className="d-flex gap-2 w-75">
+                <input 
+                    type="text" 
+                    className="form-control form-control-sm w-50" 
+                    placeholder="🔍 Search operational tasks..." 
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                />
+                <select className="form-select form-select-sm w-25" value={filterPriority} onChange={e => setFilterPriority(e.target.value)}>
+                    <option value="all">All Priorities</option>
+                    <option value="high">🔴 High</option>
+                    <option value="medium">🟡 Medium</option>
+                    <option value="low">🟢 Low</option>
+                </select>
+                <select className="form-select form-select-sm w-25" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
+                    <option value="all">All Status</option>
+                    <option value="pending">⏳ Pending</option>
+                    <option value="completed">✅ Done</option>
+                </select>
+            </div>
+        </div>
+
         <div className="d-flex justify-content-end gap-2 mb-3">
             <button className="btn btn-sm btn-outline-secondary px-3" onClick={() => setSort && setSort('due_date')}>Sort by Due Date</button>
             <button className="btn btn-sm btn-outline-secondary px-3" onClick={() => setSort && setSort('description')}>Sort by Name</button>
@@ -242,18 +345,33 @@ const DesktopDashboard: React.FC<DashboardProps> = ({ tasks, onToggle, alertDue,
                     </tr>
                 </thead>
                 <tbody>
-                    {tasks.map(task => (
-                        <tr key={task.id} className={task.is_completed ? 'table-light' : ''}>
-                            <td>
-                                <input type="checkbox" className="form-check-input pointer" checked={task.is_completed} onChange={() => onToggle(task.id)} />
-                            </td>
-                            <td className={task.is_completed ? 'text-decoration-line-through text-muted' : 'fw-semibold'}>{task.description}</td>
-                            <td>{task.due_date}</td>
-                            <td>
-                                <span className={`badge p-2 bg-${task.priority === 'high' ? 'danger' : task.priority === 'medium' ? 'warning' : 'info'}`}>{task.priority.toUpperCase()}</span>
+                    {tasks.length > 0 ? (
+                        tasks.map(task => (
+                            <tr key={task.id} className={task.is_completed ? 'table-light' : ''}>
+                                <td>
+                                    <input type="checkbox" className="form-check-input pointer" checked={task.is_completed} onChange={() => onToggle(task.id)} />
+                                </td>
+                                <td className={task.is_completed ? 'text-decoration-line-through text-muted' : 'fw-semibold'}>
+                                    {task.description}
+                                </td>
+                                <td>{task.due_date}</td>
+                                <td>
+                                    <span className={`badge p-2 bg-${task.priority === 'high' ? 'danger' : task.priority === 'medium' ? 'warning' : 'info'}`}>
+                                        {task.priority.toUpperCase()}
+                                    </span>
+                                </td>
+                            </tr>
+                        ))
+                    ) : (
+                        /* --- PERBAIKAN DI SINI: MEMBUAT PESAN KOSONG MEMANJANG PENUH --- */
+                        <tr>
+                            <td colSpan={4} className="text-center p-5 text-muted bg-white">
+                                <div className="py-3">
+                                    <span className="small">👋 Welcome aboard! You have no operational tasks allocated for today. Get started by creating your first task above.</span>
+                                </div>
                             </td>
                         </tr>
-                    ))}
+                    )}
                 </tbody>
             </table>
         </div>
@@ -266,7 +384,7 @@ const DesktopDashboard: React.FC<DashboardProps> = ({ tasks, onToggle, alertDue,
 
 const App = () => {
     const [user, setUser] = useState(null);
-    const [tasks, setTasks] = useState([]);
+    const [tasks, setTasks] = useState<TaskProps[]>([]);
     const [alertDue, setAlertDue] = useState(false);
     const [sortBy, setSortBy] = useState('due_date');
     const [loading, setLoading] = useState(true);
@@ -278,6 +396,10 @@ const App = () => {
     const [desc, setDesc] = useState('');
     const [date, setDate] = useState('');
     const [priority, setPriority] = useState('medium');
+
+    const [searchQuery, setSearchQuery] = useState<string>('');
+    const [filterPriority, setFilterPriority] = useState<string>('all'); // 'all', 'high', 'medium', 'low'
+    const [filterStatus, setFilterStatus] = useState<string>('all'); // 'all', 'completed', 'pending'
 
     const device = (window as any).deviceType || 'desktop';
 
@@ -352,6 +474,13 @@ const App = () => {
         }
     };
 
+    const filteredTasks = tasks.filter(task => {
+        const matchesSearch = task.description && task.description.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesPriority = filterPriority === 'all' || task.priority === filterPriority;
+        const matchesStatus = filterStatus === 'all' || (filterStatus === 'completed' ? task.is_completed : !task.is_completed);
+        return matchesSearch && matchesPriority && matchesStatus;
+    });
+
     if (loading) return <div className="d-flex min-vh-100 align-items-center justify-content-center">Loading Workspace...</div>;
 
     if (!user) {
@@ -364,14 +493,14 @@ const App = () => {
     }
 
     switch (device) {
-        case 'smartphone':
-            return <SmartphoneDashboard tasks={tasks} onToggle={handleToggleComplete} alertDue={alertDue} onLogout={handleLogout} onAdd={handleAddTask} desc={desc} setDesc={setDesc} date={date} setDate={setDate} priority={priority} setPriority={setPriority} />;
-        case 'tablet':
-            return <TabletDashboard tasks={tasks} onToggle={handleToggleComplete} alertDue={alertDue} onLogout={handleLogout} onAdd={handleAddTask} desc={desc} setDesc={setDesc} date={date} setDate={setDate} priority={priority} setPriority={setPriority} />;
-        case 'desktop':
-        default:
-            return <DesktopDashboard tasks={tasks} onToggle={handleToggleComplete} alertDue={alertDue} setSort={setSortBy} onLogout={handleLogout} onAdd={handleAddTask} desc={desc} setDesc={setDesc} date={date} setDate={setDate} priority={priority} setPriority={setPriority} />;
-    }
+    case 'smartphone':
+        return <SmartphoneDashboard tasks={filteredTasks} onToggle={handleToggleComplete} alertDue={alertDue} setSort={setSortBy} onLogout={handleLogout} onAdd={handleAddTask} desc={desc} setDesc={setDesc} date={date} setDate={setDate} priority={priority} setPriority={setPriority} searchQuery={searchQuery} setSearchQuery={setSearchQuery} filterPriority={filterPriority} setFilterPriority={setFilterPriority} filterStatus={filterStatus} setFilterStatus={setFilterStatus} />;
+    case 'tablet':
+        return <TabletDashboard tasks={filteredTasks} onToggle={handleToggleComplete} alertDue={alertDue} setSort={setSortBy} onLogout={handleLogout} onAdd={handleAddTask} desc={desc} setDesc={setDesc} date={date} setDate={setDate} priority={priority} setPriority={setPriority} searchQuery={searchQuery} setSearchQuery={setSearchQuery} filterPriority={filterPriority} setFilterPriority={setFilterPriority} filterStatus={filterStatus} setFilterStatus={setFilterStatus}/>;
+    case 'desktop':
+    default:
+        return <DesktopDashboard tasks={filteredTasks} onToggle={handleToggleComplete} alertDue={alertDue} setSort={setSortBy} onLogout={handleLogout} onAdd={handleAddTask} desc={desc} setDesc={setDesc} date={date} setDate={setDate} priority={priority} setPriority={setPriority} searchQuery={searchQuery} setSearchQuery={setSearchQuery} filterPriority={filterPriority} setFilterPriority={setFilterPriority} filterStatus={filterStatus} setFilterStatus={setFilterStatus}/>;
+}
 };
 
 const root = ReactDOM.createRoot(document.getElementById('root')!);
